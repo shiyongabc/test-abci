@@ -1,13 +1,11 @@
 ﻿package main
 
 import (
-	//"github.com/mkideal/cli"
-	"github.com/mkideal/cli"
 	"github.com/shiyongabc/test-abci/server"
 )
 
 type cliArgs struct {
-	cli.Helper
+	//cli.Helper
 	//ListenAddress      string `cli:"*l,*listen" usage:"listen host and port" dft:"$API_HOST_LS"`
 
 }
