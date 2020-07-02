@@ -1,6 +1,7 @@
 ﻿package main
 
 import (
+	//"github.com/mkideal/cli"
 	"github.com/mkideal/cli"
 	"github.com/shiyongabc/test-abci/server"
 )
@@ -12,14 +13,15 @@ type cliArgs struct {
 }
 
 func main() {
-
-	cli.Run(new(cliArgs), func(ctx *cli.Context) error {
-		//argv := ctx.Argv().(*cliArgs)
-		app := server.NewApplication()
-		server.New(app).Start("0.0.0.0:81")
-
-		return nil
-	})
+	app := server.NewApplication()
+	server.New(app).Start("0.0.0.0:81")
+	//cli.Run(new(cliArgs), func(ctx *cli.Context) error {
+	//	//argv := ctx.Argv().(*cliArgs)
+	//	app := server.NewApplication()
+	//	server.New(app).Start("0.0.0.0:81")
+	//
+	//	return nil
+	//})
 
 
 
