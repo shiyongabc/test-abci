@@ -7,16 +7,16 @@ import (
 
 type cliArgs struct {
 	cli.Helper
-	ListenAddress      string `cli:"*l,*listen" usage:"listen host and port" dft:"$API_HOST_LS"`
+	//ListenAddress      string `cli:"*l,*listen" usage:"listen host and port" dft:"$API_HOST_LS"`
 
 }
 
 func main() {
 
 	cli.Run(new(cliArgs), func(ctx *cli.Context) error {
-		argv := ctx.Argv().(*cliArgs)
+		//argv := ctx.Argv().(*cliArgs)
 		app := server.NewApplication()
-		server.New(app).Start(argv.ListenAddress)
+		server.New(app).Start("0.0.0.0:81")
 
 		return nil
 	})

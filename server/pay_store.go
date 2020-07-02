@@ -9,7 +9,7 @@ import (
 	dbm "github.com/tendermint/tm-db"
 
 	"github.com/tendermint/tendermint/abci/example/code"
-	"github.com/tendermint/tendermint/abci/abcitype"
+	"github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/version"
 )
 
@@ -61,10 +61,10 @@ func prefixKey(key []byte) []byte {
 
 //---------------------------------------------------
 
-var _ abcitype.Application = (*Application)(nil)
+var _ types.Application = (*Application)(nil)
 
 type Application struct {
-	abcitype.BaseApplication
+	types.BaseApplication
 
 	state        State
 	RetainBlocks int64 // blocks to retain after commit (via ResponseCommit.RetainHeight)
@@ -75,8 +75,8 @@ func NewApplication() *Application {
 	return &Application{state: state}
 }
 
-func (app *Application) Info(req abcitype.RequestInfo) (resInfo abcitype.ResponseInfo) {
-	return abcitype.ResponseInfo{
+func (app *Application) Info(req types.RequestInfo) (resInfo types.ResponseInfo) {
+	return types.ResponseInfo{
 		Data:             fmt.Sprintf("{\"size\":%v}", app.state.Size),
 		Version:          version.ABCIVersion,
 		AppVersion:       ProtocolVersion,
@@ -86,7 +86,7 @@ func (app *Application) Info(req abcitype.RequestInfo) (resInfo abcitype.Respons
 }
 
 // tx is either "key=value" or just arbitrary bytes
-func (app *Application) DeliverTx(req abcitype.RequestDeliverTx) abcitype.ResponseDeliverTx {
+func (app *Application) DeliverTx(req types.RequestDeliverTx) types.ResponseDeliverTx {
 	var key, value []byte
 	parts := bytes.Split(req.Tx, []byte("="))
 	if len(parts) == 2 {
@@ -101,10 +101,10 @@ func (app *Application) DeliverTx(req abcitype.RequestDeliverTx) abcitype.Respon
 	}
 	app.state.Size++
 
-	events := []abcitype.Event{
+	events := []types.Event{
 		{
 			Type: "app",
-			Attributes: []abcitype.EventAttribute{
+			Attributes: []types.EventAttribute{
 				{Key: []byte("creator"), Value: []byte("Cosmoshi Netowoko"), Index: true},
 				{Key: []byte("key"), Value: key, Index: true},
 				{Key: []byte("index_key"), Value: []byte("index is working"), Index: true},
@@ -113,14 +113,14 @@ func (app *Application) DeliverTx(req abcitype.RequestDeliverTx) abcitype.Respon
 		},
 	}
 
-	return abcitype.ResponseDeliverTx{Code: code.CodeTypeOK, Events: events}
+	return types.ResponseDeliverTx{Code: code.CodeTypeOK, Events: events}
 }
 
-func (app *Application) CheckTx(req abcitype.RequestCheckTx) abcitype.ResponseCheckTx {
-	return abcitype.ResponseCheckTx{Code: code.CodeTypeOK, GasWanted: 1}
+func (app *Application) CheckTx(req types.RequestCheckTx) types.ResponseCheckTx {
+	return types.ResponseCheckTx{Code: code.CodeTypeOK, GasWanted: 1}
 }
 
-func (app *Application) Commit() abcitype.ResponseCommit {
+func (app *Application) Commit() types.ResponseCommit {
 	// Using a memdb - just return the big endian size of the db
 	appHash := make([]byte, 8)
 	binary.PutVarint(appHash, app.state.Size)
@@ -128,7 +128,7 @@ func (app *Application) Commit() abcitype.ResponseCommit {
 	app.state.Height++
 	saveState(app.state)
 
-	resp := abcitype.ResponseCommit{Data: appHash}
+	resp := types.ResponseCommit{Data: appHash}
 	if app.RetainBlocks > 0 && app.state.Height >= app.RetainBlocks {
 		resp.RetainHeight = app.state.Height - app.RetainBlocks + 1
 	}
@@ -137,7 +137,7 @@ func (app *Application) Commit() abcitype.ResponseCommit {
 }
 
 // Returns an associated value or nil if missing.
-func (app *Application) Query(reqQuery abcitype.RequestQuery) (resQuery abcitype.ResponseQuery) {
+func (app *Application) Query(reqQuery types.RequestQuery) (resQuery types.ResponseQuery) {
 	if reqQuery.Prove {
 		value, err := app.state.db.Get(prefixKey(reqQuery.Data))
 		if err != nil {

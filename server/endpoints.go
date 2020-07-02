@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"github.com/labstack/echo"
 	"github.com/shiyongabc/test-abci/abcitype"
-	"github.com/tendermint/tendermint/abci/abcitype"
+	"github.com/tendermint/tendermint/abci/types"
 	"net/http"
 )
 
@@ -31,14 +31,27 @@ func endpointTableCreate(app *Application) func(c echo.Context) error {
 	//api.Create()
 	return func(c echo.Context) error {
 		payload, errorMessage := bodyMapOf(c)
+		userId:=c.QueryParam("userId")
+		operateKey:=c.QueryParam("operateKey")
 		if errorMessage!=nil{
 			return c.JSON( http.StatusBadRequest, errorMessage)
 		}
 		//api.Create(payload)
-		var req abcitype.RequestDeliverTx
-		req
-		app.DeliverTx(req)
-		return c.JSON( http.StatusOK, "blockchain trade start!")
+		println("tx=",userId)
+		bytett,_:=json.Marshal(payload)
+		txParam:=userId+"-"+operateKey+"="+string(bytett)
+		println("tx=",txParam)
+		var req types.RequestDeliverTx
+		//byteData , _ := json.Marshal(txParam)
+		req.Tx=[]byte(txParam)
+		//types.ResponseDeliverTx
+
+		res:=app.DeliverTx(req)
+		var reqCh types.RequestCheckTx
+		app.CheckTx(reqCh)
+		app.Commit()
+
+		return c.JSON( http.StatusOK, res)
 	}
 
 }
@@ -46,8 +59,13 @@ func endpointTableCreate(app *Application) func(c echo.Context) error {
 func endpointTableGet(app *Application) func(c echo.Context) error {
 //api.Create()
 	return func(c echo.Context) error {
-		app.Query()
-		return c.JSON( http.StatusOK, "blockchain trade start!")
+		var queryReq types.RequestQuery
+		print(c.QueryParam("data"))
+		queryReq.Data=[]byte(c.QueryParam("data"))
+		print(queryReq.Data)
+		queryReq.Prove=true
+		res:=app.Query(queryReq)
+		return c.JSON( http.StatusOK, res)
 	}
 
 }
